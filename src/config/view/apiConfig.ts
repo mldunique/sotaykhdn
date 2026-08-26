@@ -1,5 +1,6 @@
-// Nơi quản lý tập trung đường dẫn Server Backend
-export const BASE_URL = 'http://localhost:8082';
+// Nơi quản lý tập trung đường dẫn Server Backend (Tự động theo Host)
+const getHost = () => (typeof window !== 'undefined' && window.location && window.location.hostname ? window.location.hostname : 'localhost');
+export const BASE_URL = `http://${getHost()}:8082`;
 
 export const API_ENDPOINTS = {
   PRODUCT_GROUPS: {

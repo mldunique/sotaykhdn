@@ -1,13 +1,25 @@
-// Nơi quản lý tập trung đường dẫn Server Backend
-// export const BASE_URL = 'https://determine-september-helmet-archive.trycloudflare.com/api/v1';
-export const BASE_URL = 'http://localhost:8082/api/v1';
-export const AUTH_SERVICE_LOGIN_URL = 'http://localhost:8080/login';
-export const AUTH_SERVICE_LOGOUT_URL = 'http://localhost:8080/logout';
-export const AUTH_SERVICE_BASE_URL = 'http://localhost:8080/api/v1';
+// Cấu hình URL linh hoạt tự động theo Host của môi trường (Localhost / UAT / IP)
+const getHost = () => (typeof window !== 'undefined' && window.location && window.location.hostname ? window.location.hostname : 'localhost');
+const host = getHost();
+
+export const BASE_URL = `http://${host}:8082/api/v1`;
+export const AUTH_SERVICE_LOGIN_URL = `http://${host}:8080/login`;
+export const AUTH_SERVICE_LOGOUT_URL = `http://${host}:8080/logout`;
+export const AUTH_SERVICE_BASE_URL = `http://${host}:8080/api/v1`;
+
 export const AUTH_ME_URL = `${BASE_URL}/auth/me`;
 export const BEADMIN_USERS_URL = (username: string, branchCode: string) => 
   `${AUTH_SERVICE_BASE_URL}/branches/users-from-beadmin?username=${encodeURIComponent(username)}&branchCode=${encodeURIComponent(branchCode)}`;
+import axios from 'axios';
 
+// Tự động gắn token Authorization Bearer từ localStorage vào tất cả request Axios
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+});
 
 // Bạn có thể gom sẵn các đầu Endpoint vào đây cho dễ quản lý
 export const API_ENDPOINTS = {

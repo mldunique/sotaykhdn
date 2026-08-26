@@ -23,7 +23,7 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
   
   try {
     const response = await originalFetch(request, newInit);
-    if (response.status === 401) {
+    if (response.status === 401 || response.status === 403) {
       const redirectUri = window.location.href;
       window.location.href = `${AUTH_SERVICE_LOGIN_URL}?redirect_uri=${encodeURIComponent(redirectUri)}`;
       return new Promise<Response>(() => {});
@@ -34,11 +34,11 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
   }
 };
 
-// Intercept 401 responses to automatically redirect the browser to the SSO Login portal
+// Intercept 401 & 403 responses to automatically redirect the browser to the SSO Login portal
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
       const redirectUri = window.location.href;
       window.location.href = `${AUTH_SERVICE_LOGIN_URL}?redirect_uri=${encodeURIComponent(redirectUri)}`;
       return new Promise(() => {}); // Return a pending promise to cancel further processing

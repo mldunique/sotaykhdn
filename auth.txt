@@ -1,0 +1,2 @@
+2fa secret(mã xác thực) | user | pass | đơn vị
+2E4JFPGJFETAFHNE |37ETK081 | Abc123456$ | 10500037

@@ -216,7 +216,7 @@ const DetailCriteriaPage: React.FC = () => {
 
     try {
       setLoading(true);
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || sessionStorage.getItem('token');
       const response = await fetch(API_ENDPOINTS.PRODUCT_CRITERIA.UPDATE(id), {
         method: 'POST',
         headers: { 
@@ -301,7 +301,7 @@ const DetailCriteriaPage: React.FC = () => {
     if (isReadOnly || !id) return;
     try {
       setLoading(true);
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || sessionStorage.getItem('token');
       const response = await fetch(API_ENDPOINTS.PRODUCT_CRITERIA.DELETE(id), {
         method: 'POST',
         headers: { 

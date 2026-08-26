@@ -9,14 +9,15 @@ export default defineConfig({
     proxy: {
       // Chuyển hướng các request bắt đầu bằng /api sang server backend
       '/api': {
-        target: 'http://localhost:8082',
+        target: 'http://localhost:8082', // Local DEV
+        // target: 'http://10.0.175.10:8082', // UAT IP
         changeOrigin: true,
         secure: false,
       },
       // Chuyển hướng các request bắt đầu bằng /files sang server backend để lấy ảnh
-      // Điều này giúp trình duyệt hiểu ảnh đang nằm ở cùng domain với frontend (tránh CORS)
       '/files': {
-        target: 'http://localhost:8082',
+        target: 'http://localhost:8082', // Local DEV
+        // target: 'http://10.0.175.10:8082', // UAT IP
         changeOrigin: true,
         secure: false,
       }

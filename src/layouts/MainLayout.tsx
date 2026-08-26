@@ -55,10 +55,10 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import HeaderBar from '../components/HeaderBar';
 import Sidebar from '../components/Sidebar';
 import './MainLayout.css';
-import { Toaster, toast } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 import axios from 'axios';
-import { AUTH_ME_URL, BEADMIN_USERS_URL } from '../config/apiConfig';
-import { getAllowedModesForRole } from '../config/menuConfig';
+import { AUTH_ME_URL, BEADMIN_USERS_URL, AUTH_SERVICE_LOGIN_URL } from '../config/apiConfig';
+import { getAllowedModesForRole, normalizeRole } from '../config/menuConfig';
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
@@ -79,8 +79,26 @@ const MainLayout: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // Lấy token từ URL query parameter nếu được auth-service redirect về
+    const searchParams = new URLSearchParams(window.location.search);
+    const tokenFromUrl = searchParams.get('token');
+    if (tokenFromUrl) {
+      localStorage.setItem('accessToken', tokenFromUrl);
+      localStorage.setItem('token', tokenFromUrl);
+      searchParams.delete('token');
+      const newSearch = searchParams.toString();
+      const newUrl = window.location.pathname + (newSearch ? `?${newSearch}` : '') + window.location.hash;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+
+    const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     setLoading(true);
-    axios.get(AUTH_ME_URL, { withCredentials: true })
+    axios.get(AUTH_ME_URL, { headers, withCredentials: true })
       .then(res => {
         if (res.data) {
           const user = res.data;
@@ -88,28 +106,26 @@ const MainLayout: React.FC = () => {
           const branchCode = user.branchCode || '001';
           const username = user.username;
           const role = user.role || 'ETN08';
+          const normalizedRole = normalizeRole(role);
 
-          // Set into localstorage
           localStorage.setItem('currentUser', `${fullName}_${branchCode}`);
           localStorage.setItem('currentUserUsername', username);
           localStorage.setItem('currentUserFullName', fullName);
           localStorage.setItem('currentUserBranchCode', branchCode);
-          localStorage.setItem('currentUserRole', role);
+          localStorage.setItem('currentUserRole', normalizedRole);
+          setCurrentUserRole(normalizedRole);
 
-          // Reset userRole/Mode if current mode is not allowed for the user's role
-          const allowedModes = getAllowedModesForRole(role);
+          const allowedModes = getAllowedModesForRole(normalizedRole);
           let currentMode = localStorage.getItem('userRole') as any;
           if (!currentMode || !allowedModes.includes(currentMode)) {
             currentMode = allowedModes[0];
             localStorage.setItem('userRole', currentMode);
           }
 
-          // Dispatch event so other components (like HeaderBar) update
           window.dispatchEvent(new Event('userRoleChanged'));
           window.dispatchEvent(new Event('currentUserChanged'));
 
-          // Gọi BEAdmin API với actionType=4 lấy danh sách user và lưu sessionStorage
-          axios.get(BEADMIN_USERS_URL(username, branchCode))
+          axios.get(BEADMIN_USERS_URL(username, branchCode), { headers, withCredentials: true })
             .then(usersRes => {
               if (usersRes.data) {
                 const rawData = typeof usersRes.data === 'string' ? usersRes.data : JSON.stringify(usersRes.data);
@@ -125,29 +141,38 @@ const MainLayout: React.FC = () => {
       })
       .catch(err => {
         console.error("Failed to fetch user info", err);
-        setLoading(false);
+        const redirectUri = window.location.href;
+        window.location.href = `${AUTH_SERVICE_LOGIN_URL}?redirect_uri=${encodeURIComponent(redirectUri)}`;
       });
   }, []);
 
-  // ROUTE GUARD: Chặn truy cập trái phép trực tiếp qua URL
+  // ROUTE GUARD: Điều hướng thông minh theo đúng quyền hạn thực tế của user
   useEffect(() => {
     if (!currentUserRole) return;
 
     const path = location.pathname;
     const isApproverPath = path.startsWith('/approver');
+    const roleUpper = currentUserRole.toUpperCase();
+
+    const isAdmin = roleUpper.includes('ESA08') || roleUpper.includes('ADMIN') || roleUpper.includes('QTERP');
+    const isManager = isAdmin || roleUpper.includes('ETN08') || roleUpper.includes('USER');
+    const isApprover = isAdmin || roleUpper.includes('ETK08');
 
     if (isApproverPath) {
-      // Chỉ ESA08 và ETK08 được vào các màn approver
-      if (currentUserRole !== 'ESA08' && currentUserRole !== 'ETK08') {
-        toast.error("Bạn không có quyền truy cập vào chức năng kiểm duyệt!");
-        navigate('/view'); // Chuyển về màn hình tra cứu sản phẩm
+      if (!isApprover) {
+        if (isManager) {
+          navigate('/product-groups', { replace: true });
+        } else {
+          navigate('/view', { replace: true });
+        }
       }
     } else {
-      // Các màn hình quản trị khác thuộc MainLayout (như quản lý nhóm, quản lý tiêu chí...)
-      // Chỉ ESA08 và ETN08 được vào các màn này
-      if (currentUserRole !== 'ESA08' && currentUserRole !== 'ETN08') {
-        toast.error("Bạn không có quyền truy cập vào chức năng quản lý!");
-        navigate('/view'); // Chuyển về màn hình tra cứu sản phẩm
+      if (!isManager) {
+        if (isApprover) {
+          navigate('/approver/product-groups', { replace: true });
+        } else {
+          navigate('/view', { replace: true });
+        }
       }
     }
   }, [location.pathname, currentUserRole, navigate]);

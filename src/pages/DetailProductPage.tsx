@@ -789,7 +789,7 @@ const DetailProductPage: React.FC = () => {
         status,
         criteria: criteria.filter(c => c.isSelected).map(c => ({ criteriaId: c.id, value: c.value.trim() })),
       };
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || sessionStorage.getItem('token');
       const res = await fetch(API_ENDPOINTS.PRODUCT.UPDATE(id), { 
         method: 'POST', 
         headers: { 
@@ -819,7 +819,7 @@ const DetailProductPage: React.FC = () => {
   // CẬP NHẬT LẠI HÀM NÀY: CHỈ XỬ LÝ LÔ
   const handleBatchStatusSubmit = async (requestId: string, status: string) => {
     try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || sessionStorage.getItem('token');
       
       // Bỏ '|| id' đi vì hàm này không dùng để submit lẻ nữa
       const targetRequestId = requestId || productData?.requestId || productData?.batchRequestId;
@@ -880,7 +880,7 @@ const DetailProductPage: React.FC = () => {
     if (isReadOnly || !id) return;
     try {
       setLoading(true);
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || sessionStorage.getItem('token');
       const res = await fetch(API_ENDPOINTS.PRODUCT.DELETE(id), { 
         method: 'POST',
         headers: {

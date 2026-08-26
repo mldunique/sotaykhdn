@@ -27,6 +27,17 @@ export const getAllowedModesForRole = (role: string): ('VIEWER' | 'ETN08' | 'ETK
   }
 };
 
+export const normalizeRole = (rawRole?: string): UserRole => {
+  if (!rawRole) return 'VIEWER';
+  const upper = rawRole.toUpperCase();
+  if (upper.includes('ETK08')) return 'ETK08';
+  if (upper.includes('ETN08')) return 'ETN08';
+  if (upper.includes('ESA08') || upper.includes('ADMIN') || upper.includes('QTERP')) return 'ESA08';
+  if (upper.includes('ECV08')) return 'ECV08';
+  if (upper.includes('USER')) return 'ETN08';
+  return 'VIEWER';
+};
+
 // 1. Menu Quyền Biên tập (ETN08)
 export const EDIT_MENU_ITEMS: MenuItem[] = [
   { name: 'Quản lý nhóm sản phẩm', path: '/product-groups' },

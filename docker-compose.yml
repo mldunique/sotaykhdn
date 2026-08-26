@@ -1,0 +1,7 @@
+services:
+  sotay-fe:
+    build: .
+    container_name: sotay-fe
+    image: sotay-fe:uat
+    ports:
+      - "5173:80"

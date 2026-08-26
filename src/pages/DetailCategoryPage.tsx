@@ -54,7 +54,7 @@ const DetailCategoryPage: React.FC = () => {
   const [isActive, setIsActive] = useState(true);
   const [groupOptions, setGroupOptions] = useState<{ label: string; value: string }[]>([]);
   
-  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || sessionStorage.getItem('token');
   
   // 1. Khởi tạo userMap 1 lần duy nhất bằng useMemo để tối ưu hiệu suất
   const userMap = useMemo(() => getUserMap(), []);

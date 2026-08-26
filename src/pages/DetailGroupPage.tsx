@@ -44,7 +44,7 @@ const DetailGroupPage: React.FC = () => {
   const [productData, setProductData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || sessionStorage.getItem('token');
 
   // Khởi tạo userMap một lần duy nhất để tối ưu hiệu suất
   const userMap = useMemo(() => getUserMap(), []);
